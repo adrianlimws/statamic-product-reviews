@@ -1,0 +1,92 @@
+title: Review
+tabs:
+  main:
+    display: Main
+    sections:
+      -
+        fields:
+          -
+            handle: title
+            field:
+              type: text
+              display: Title
+              localizable: false
+          -
+            handle: body
+            field:
+              type: textarea
+              display: Body
+              localizable: false
+          -
+            handle: author_name
+            field:
+              type: text
+              display: Author
+              localizable: false
+          -
+            handle: rating
+            field:
+              type: integer
+              display: Rating
+              localizable: false
+              validate:
+                - required
+                - integer
+                - min:1
+                - max:5
+          -
+            handle: product_id
+            field:
+              type: text
+              display: Product ID
+              instructions: External product ID from the review platform (e.g. Yotpo SKU).
+              localizable: false
+          -
+            handle: verified
+            field:
+              type: toggle
+              display: Verified Buyer
+              default: false
+              localizable: false
+          -
+            handle: reviewed_at
+            field:
+              type: date
+              display: Reviewed At
+              time_enabled: true
+              localizable: false
+          -
+            handle: manual_override
+            field:
+              type: toggle
+              display: Manual Override
+              instructions: When enabled, sync will not overwrite this entry.
+              default: false
+              localizable: false
+  meta:
+    display: Meta
+    sections:
+      -
+        fields:
+          -
+            handle: external_id
+            field:
+              type: text
+              display: External ID
+              validate:
+                - required
+              localizable: false
+          -
+            handle: provider
+            field:
+              type: text
+              display: Provider
+              default: yotpo
+              localizable: false
+          -
+            handle: raw
+            field:
+              type: textarea
+              display: Raw Payload
+              instructions: Optional debug payload from the last sync.
+              localizable: false

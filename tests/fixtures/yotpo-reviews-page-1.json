@@ -1,0 +1,30 @@
+{
+  "response": {
+    "reviews": [
+      {
+        "id": 1001,
+        "title": "Great mug",
+        "content": "Keeps coffee hot for hours.",
+        "score": 5,
+        "created_at": "2024-01-15T12:00:00.000Z",
+        "verified_buyer": true,
+        "sku": "mug-01",
+        "name": "Alex R.",
+        "deleted": false,
+        "published": true
+      },
+      {
+        "id": 1002,
+        "title": "Nice shirt",
+        "content": "Fits well.",
+        "score": 4,
+        "created_at": "2024-02-01T09:30:00.000Z",
+        "verified_buyer": false,
+        "sku": "shirt-01",
+        "name": "Jamie L.",
+        "deleted": false,
+        "published": true
+      }
+    ]
+  }
+}

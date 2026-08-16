@@ -1,0 +1,8 @@
+# Export ignores for Packagist / GitHub archives
+/.github export-ignore
+/tests export-ignore
+/.gitignore export-ignore
+/.gitattributes export-ignore
+/phpunit.xml export-ignore
+/SHIPPING.md export-ignore
+/.phpunit.result.cache export-ignore

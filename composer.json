@@ -1,0 +1,65 @@
+{
+    "name": "brainjuredstudio/product-reviews",
+    "description": "Sync product reviews from Yotpo into Statamic collections with Antlers tags and Schema.org markup.",
+    "keywords": [
+        "statamic",
+        "statamic-addon",
+        "yotpo",
+        "reviews",
+        "ecommerce",
+        "schema.org"
+    ],
+    "license": "proprietary",
+    "type": "statamic-addon",
+    "authors": [
+        {
+            "name": "Brainjured Studio",
+            "email": "adrianlimws@gmail.com",
+            "homepage": "https://brainjured.studio"
+        }
+    ],
+    "support": {
+        "email": "adrianlimws@gmail.com"
+    },
+    "autoload": {
+        "psr-4": {
+            "Brainjuredstudio\\ProductReviews\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Brainjuredstudio\\ProductReviews\\Tests\\": "tests"
+        }
+    },
+    "require": {
+        "php": "^8.3",
+        "statamic/cms": "^6.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^10.8"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "pixelfear/composer-dist-plugin": true
+        }
+    },
+    "extra": {
+        "statamic": {
+            "name": "Product Reviews",
+            "description": "Sync product reviews from Yotpo into Statamic",
+            "editions": [
+                "standard"
+            ]
+        },
+        "laravel": {
+            "providers": [
+                "Brainjuredstudio\\ProductReviews\\ServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
