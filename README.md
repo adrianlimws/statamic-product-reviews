@@ -98,7 +98,7 @@ Commercial / proprietary. A valid Statamic Marketplace license is required per s
 
 ## Support
 
-Email: adrianlimws@gmail.com
+Email: brainjuredstudio@gmail.com
 
 ## Changelog
 
