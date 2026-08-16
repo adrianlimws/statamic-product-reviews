@@ -66,6 +66,7 @@ class ServiceProvider extends AddonServiceProvider
                 ->description('Sync product reviews from Yotpo into a local collection.')
                 ->view('product-reviews::utility', function () {
                     $provider = app(ReviewProvider::class);
+                    $collection = config('product-reviews.collection', 'product_reviews');
 
                     return [
                         'title' => 'Product Reviews',
@@ -74,6 +75,8 @@ class ServiceProvider extends AddonServiceProvider
                         'configured' => $provider->isConfigured(),
                         'status' => SyncStatus::get(),
                         'syncUrl' => cp_route('utilities.product-reviews.sync'),
+                        'collection' => $collection,
+                        'collectionUrl' => cp_route('collections.show', $collection),
                     ];
                 })
                 ->routes(function ($router) {

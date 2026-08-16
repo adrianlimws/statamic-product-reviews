@@ -44,6 +44,8 @@ return [
         'secret' => env('PRODUCT_REVIEWS_YOTPO_SECRET'),
         'base_url' => env('PRODUCT_REVIEWS_YOTPO_BASE_URL', 'https://api.yotpo.com'),
         'token_cache_ttl' => (int) env('PRODUCT_REVIEWS_YOTPO_TOKEN_TTL', 3500),
+        'timeout' => (int) env('PRODUCT_REVIEWS_YOTPO_TIMEOUT', 60),
+        'connect_timeout' => (int) env('PRODUCT_REVIEWS_YOTPO_CONNECT_TIMEOUT', 15),
     ],
 
 ];
