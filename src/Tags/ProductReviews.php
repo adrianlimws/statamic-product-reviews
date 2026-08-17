@@ -11,7 +11,7 @@ class ProductReviews extends Tags
     protected static $handle = 'product_reviews';
 
     /**
-     * {{ product_reviews product_id="sku" limit="10" }}
+     * {{ product_reviews product_id="sku" limit="10" page="2" }}
      *   {{ rating }} {{ author_name }} {{ body }}
      * {{ /product_reviews }}
      */
@@ -25,7 +25,7 @@ class ProductReviews extends Tags
      */
     public function average()
     {
-        $entries = $this->query()->get();
+        $entries = $this->baseQuery()->get();
 
         if ($entries->isEmpty()) {
             return 0;
@@ -39,7 +39,7 @@ class ProductReviews extends Tags
      */
     public function count()
     {
-        return $this->query()->count();
+        return $this->baseQuery()->count();
     }
 
     /**
@@ -54,6 +54,25 @@ class ProductReviews extends Tags
     }
 
     protected function query()
+    {
+        $query = $this->baseQuery();
+
+        $sort = $this->params->get('sort', 'reviewed_at:desc');
+        [$field, $direction] = array_pad(explode(':', $sort, 2), 2, 'desc');
+        $query->orderBy($field, $direction);
+
+        if ($offset = $this->resolveOffset()) {
+            $query->offset($offset);
+        }
+
+        if ($limit = $this->params->int('limit')) {
+            $query->limit($limit);
+        }
+
+        return $query;
+    }
+
+    protected function baseQuery()
     {
         $query = Entry::query()
             ->where('collection', config('product-reviews.collection', 'product_reviews'))
@@ -71,14 +90,21 @@ class ProductReviews extends Tags
             $query->where('provider', $provider);
         }
 
-        $sort = $this->params->get('sort', 'reviewed_at:desc');
-        [$field, $direction] = array_pad(explode(':', $sort, 2), 2, 'desc');
-        $query->orderBy($field, $direction);
+        return $query;
+    }
 
-        if ($limit = $this->params->int('limit')) {
-            $query->limit($limit);
+    protected function resolveOffset(): int
+    {
+        if ($this->params->has('offset')) {
+            return max(0, $this->params->int('offset'));
         }
 
-        return $query;
+        if ($page = $this->params->int('page')) {
+            $limit = max(1, $this->params->int('limit') ?: 10);
+
+            return max(0, ($page - 1) * $limit);
+        }
+
+        return 0;
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Brainjuredstudio\ProductReviews\Jobs;
 
+use Brainjuredstudio\ProductReviews\Support\SyncStatus;
 use Brainjuredstudio\ProductReviews\Sync\ReviewSynchronizer;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -18,6 +19,8 @@ class SyncReviewsJob implements ShouldQueue
 
     public function handle(ReviewSynchronizer $synchronizer): void
     {
+        SyncStatus::markSyncing();
+
         $synchronizer->sync();
     }
 }

@@ -9,6 +9,7 @@
         ? 'text-gray-400'
         : ($success ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400');
     $errorMessage = session('error') ?: ($status['error'] ?? null);
+    $syncing = $status['syncing'] ?? false;
     $scheduleLabel = str_replace('_', ' ', $schedule ?? 'daily');
     $sourceLabel = $yotpoSource ?? 'auto';
 @endphp
@@ -92,7 +93,13 @@
                     </tr>
                     <tr>
                         <td class="px-4 py-3 text-gray-500 dark:text-gray-400">Last result</td>
-                        <td class="px-4 py-3 font-medium {{ $resultClass }}">{{ $resultLabel }}</td>
+                        <td class="px-4 py-3 font-medium {{ $resultClass }}">
+                            @if ($syncing)
+                                <span class="text-blue-600 dark:text-blue-400">Syncing…</span>
+                            @else
+                                {{ $resultLabel }}
+                            @endif
+                        </td>
                     </tr>
                 </tbody>
             </table>

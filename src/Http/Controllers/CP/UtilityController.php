@@ -19,23 +19,13 @@ class UtilityController extends CpController
             return back()->with('error', 'Review provider is not configured. Add credentials to your .env file.');
         }
 
-        try {
-            SyncReviewsJob::dispatchSync();
-        } catch (\Throwable $e) {
-            return back()->with('error', $e->getMessage());
+        if (SyncStatus::get()['syncing'] ?? false) {
+            return back()->with('success', 'Sync is already in progress. Refresh this page shortly.');
         }
 
-        $status = SyncStatus::get();
+        SyncReviewsJob::dispatch();
 
-        return back()->with(
-            'success',
-            sprintf(
-                'Sync complete. Created %d, updated %d, skipped %d.',
-                $status['created'] ?? 0,
-                $status['updated'] ?? 0,
-                $status['skipped'] ?? 0,
-            )
-        );
+        return back()->with('success', 'Sync queued. Refresh this page in a moment to see results.');
     }
 
     public function test(ReviewProvider $provider, YotpoClient $client): RedirectResponse

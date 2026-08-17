@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-08-17
+
+### Added
+
+- Publishable Antlers partial: `{{ partial:product-reviews/list }}` with stars, count, schema, photos, pagination, and optional `show_header="false"`
+- Review photo sync from Yotpo `images_data` (`images` list field on entries)
+- Tag pagination via `page` and `offset` params on `{{ product_reviews }}`
+- CP sync runs on the queue (avoids Control Panel timeouts on slow Yotpo responses)
+- Tests for Antlers tags, connection test, and queued sync
+
+### Improved
+
+- CP utility shows **Syncing…** while a queued sync is running
+
 ## [1.1.0] - 2026-08-17
 
 ### Added

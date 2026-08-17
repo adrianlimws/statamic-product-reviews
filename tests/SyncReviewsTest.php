@@ -219,6 +219,7 @@ class SyncReviewsTest extends TestCase
         $this->assertNotNull($entry);
         $this->assertSame('mug-01', $entry->get('product_id'));
         $this->assertSame('CDN User', $entry->get('author_name'));
+        $this->assertSame(['https://cdn.example.com/original.jpg'], $entry->get('images'));
     }
 
     public function test_cdn_only_source_skips_core_api(): void

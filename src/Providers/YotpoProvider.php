@@ -218,7 +218,36 @@ class YotpoProvider implements ReviewProvider
             reviewedAt: data_get($review, 'created_at'),
             published: $published,
             deleted: (bool) data_get($review, 'deleted', false),
+            images: $this->extractImages($review),
             raw: $review,
         );
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function extractImages(array $review): array
+    {
+        $images = data_get($review, 'images_data', []);
+
+        if (! is_array($images)) {
+            return [];
+        }
+
+        $urls = [];
+
+        foreach ($images as $image) {
+            if (! is_array($image)) {
+                continue;
+            }
+
+            $url = data_get($image, 'original_url') ?? data_get($image, 'thumb_url');
+
+            if (filled($url)) {
+                $urls[] = (string) $url;
+            }
+        }
+
+        return array_values(array_unique($urls));
     }
 }

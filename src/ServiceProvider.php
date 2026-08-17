@@ -45,7 +45,12 @@ class ServiceProvider extends AddonServiceProvider
         $this->publishes([
             __DIR__.'/../resources/content/collections/product_reviews.yaml' => base_path('content/collections/product_reviews.yaml'),
             __DIR__.'/../resources/blueprints/collections/product_reviews/review.yaml' => resource_path('blueprints/collections/product_reviews/review.yaml'),
+            __DIR__.'/../resources/views/partials/product-reviews' => resource_path('views/partials/product-reviews'),
         ], 'product-reviews-content');
+
+        $this->publishes([
+            __DIR__.'/../resources/views/partials/product-reviews' => resource_path('views/partials/product-reviews'),
+        ], 'product-reviews-partials');
 
         Statamic::afterInstalled(function ($command) {
             $command->call('vendor:publish', [
@@ -54,6 +59,10 @@ class ServiceProvider extends AddonServiceProvider
             ]);
             $command->call('vendor:publish', [
                 '--tag' => 'product-reviews-config',
+                '--force' => true,
+            ]);
+            $command->call('vendor:publish', [
+                '--tag' => 'product-reviews-partials',
                 '--force' => true,
             ]);
         });

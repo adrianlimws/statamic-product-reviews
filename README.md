@@ -11,6 +11,7 @@
 - Scheduled and on-demand sync (down to every five minutes)
 - Manual override so CP edits are not overwritten
 - Antlers tags for listing, averages, and counts
+- Drop-in Antlers partial with star rating, schema, photos, and pagination
 - Schema.org Product / AggregateRating / Review markup
 - CP utility for connection test, status, and “Sync now”
 
@@ -26,6 +27,7 @@
 composer require brainjuredstudio/product-reviews
 php artisan vendor:publish --tag=product-reviews-config
 php artisan vendor:publish --tag=product-reviews-content
+php artisan vendor:publish --tag=product-reviews-partials
 ```
 
 On `php please statamic:install`, config and content publish automatically.
@@ -86,13 +88,39 @@ php please product-reviews:sync
 php artisan product-reviews:sync
 ```
 
-Or **Utilities → Product Reviews → Sync Now** in the Control Panel. Use **Test Connection** to verify credentials without a full sync.
+Or **Utilities → Product Reviews → Sync Now** in the Control Panel. Use **Test Connection** to verify credentials without a full sync. Sync runs in the background queue so the CP does not time out on slow Yotpo responses.
 
-Default schedule is daily. Ensure the host runs Laravel’s scheduler:
+Default schedule is daily. Ensure the host runs Laravel’s scheduler and a queue worker when using CP sync:
 
 ```cron
 * * * * * cd /path/to/site && php artisan schedule:run >> /dev/null 2>&1
 ```
+
+```bash
+php artisan queue:work
+```
+
+## Drop-in partial
+
+Publish the partial once:
+
+```bash
+php artisan vendor:publish --tag=product-reviews-partials
+```
+
+Then on any product template:
+
+```antlers
+{{ partial:product-reviews/list product_id="{{ sku }}" product_name="{{ title }}" limit="10" page="{get:page}" }}
+```
+
+Hide the built-in rating header when your product page already shows one:
+
+```antlers
+{{ partial:product-reviews/list product_id="{{ sku }}" show_header="false" }}
+```
+
+The partial outputs Schema.org JSON-LD, star rating summary, review list (with photos when synced), and prev/next pagination links. Override styles via the `.product-reviews` classes or copy the partial into your theme.
 
 ## Antlers
 
@@ -113,7 +141,9 @@ Default schedule is daily. Ensure the host runs Laravel’s scheduler:
 {{ /product_reviews }}
 ```
 
-Parameters: `product_id`, `min_rating`, `provider`, `limit`, `sort` (default `reviewed_at:desc`).
+Parameters: `product_id`, `min_rating`, `provider`, `limit`, `page`, `offset`, `sort` (default `reviewed_at:desc`).
+
+Pagination: `page` is 1-based and works with `limit`. Use `offset` for explicit skipping (`offset` wins when both are set).
 
 ## Moderation
 

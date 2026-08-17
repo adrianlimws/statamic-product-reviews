@@ -56,6 +56,13 @@ tabs:
               time_enabled: true
               localizable: false
           -
+            handle: images
+            field:
+              type: list
+              display: Photos
+              instructions: Review photo URLs synced from Yotpo.
+              localizable: false
+          -
             handle: manual_override
             field:
               type: toggle

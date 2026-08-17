@@ -1,0 +1,133 @@
+{{#
+    Product Reviews — drop-in partial
+
+    Usage:
+    {{ partial:product-reviews/list product_id="sku-123" product_name="Ceramic Mug" }}
+
+    Params:
+    - product_id (required) — storefront SKU / Yotpo external ID
+    - product_name — for Schema.org (defaults to product_id)
+    - limit — reviews per page (default: 10)
+    - page — page number, 1-based (default: 1)
+    - show_pagination — show prev/next links (default: true)
+    - show_header — show aggregate rating header (default: true)
+#}}
+
+{{ limit = limit ?? 10 }}
+{{ page = page ?? 1 }}
+{{ product_name = product_name ?? product_id }}
+{{ show_pagination = show_pagination ?? true }}
+{{ show_header = show_header ?? true }}
+{{ average = {product_reviews:average product_id="{product_id}"} }}
+{{ total = {product_reviews:count product_id="{product_id}"} }}
+
+{{ product_reviews:schema product_id="{product_id}" product_name="{product_name}" }}
+
+<section class="product-reviews" aria-label="Product reviews">
+    {{ if show_header && show_header != 'false' }}
+    <header class="product-reviews__header">
+        <div class="product-reviews__rating" aria-label="{{ average }} out of 5 stars">
+            <div class="product-reviews__stars" aria-hidden="true">
+                {{ loop times="5" }}
+                    <svg class="product-reviews__star {{ index <= average ? 'product-reviews__star--filled' : 'product-reviews__star--empty' }}" viewBox="0 0 20 20" width="20" height="20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                {{ /loop }}
+            </div>
+            <p class="product-reviews__summary">
+                <span class="product-reviews__average">{{ average }}</span>
+                <span class="product-reviews__count">({{ total }} {{ total == 1 ? 'review' : 'reviews' }})</span>
+            </p>
+        </div>
+    </header>
+    {{ /if }}
+
+    <ol class="product-reviews__list">
+        {{ product_reviews product_id="{product_id}" limit="{limit}" page="{page}" }}
+            <li class="product-reviews__item">
+                <div class="product-reviews__meta">
+                    <p class="product-reviews__author">{{ author_name ?? 'Anonymous' }}</p>
+                    {{ if verified }}
+                        <span class="product-reviews__verified">Verified buyer</span>
+                    {{ /if }}
+                    {{ if reviewed_at }}
+                        <time class="product-reviews__date" datetime="{{ reviewed_at format='Y-m-d' }}">{{ reviewed_at format="F j, Y" }}</time>
+                    {{ /if }}
+                    <div class="product-reviews__item-stars" aria-label="{{ rating }} out of 5">
+                        {{ loop times="5" }}
+                            <svg class="product-reviews__star product-reviews__star--small {{ index <= rating ? 'product-reviews__star--filled' : 'product-reviews__star--empty' }}" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                        {{ /loop }}
+                    </div>
+                </div>
+
+                {{ if title }}
+                    <h3 class="product-reviews__title">{{ title }}</h3>
+                {{ /if }}
+
+                {{ if body }}
+                    <p class="product-reviews__body">{{ body }}</p>
+                {{ /if }}
+
+                {{ if images }}
+                    <ul class="product-reviews__photos">
+                        {{ images }}
+                            <li class="product-reviews__photo">
+                                <img src="{{ value }}" alt="" loading="lazy" class="product-reviews__photo-img" />
+                            </li>
+                        {{ /images }}
+                    </ul>
+                {{ /if }}
+            </li>
+        {{ /product_reviews }}
+    </ol>
+
+    {{ if show_pagination && total > limit }}
+        <nav class="product-reviews__pagination" aria-label="Review pages">
+            {{ if page > 1 }}
+                <a class="product-reviews__pagination-link product-reviews__pagination-link--prev" href="?page={{ page - 1 }}#product-reviews">Previous</a>
+            {{ /if }}
+            {{ if (page * limit) < total }}
+                <a class="product-reviews__pagination-link product-reviews__pagination-link--next" href="?page={{ page + 1 }}#product-reviews">Next</a>
+            {{ /if }}
+        </nav>
+    {{ /if }}
+</section>
+
+<style>
+    .product-reviews {
+        --pr-text: #44403c;
+        --pr-text-muted: #78716c;
+        --pr-text-strong: #1c1917;
+        --pr-border: #e7e5e4;
+        --pr-star-filled: #f59e0b;
+        --pr-star-empty: #d6d3d1;
+        --pr-link: #b45309;
+        --pr-verified: #047857;
+        margin: 0;
+        color: var(--pr-text);
+    }
+    .product-reviews__header { margin-bottom: 1.25rem; }
+    .product-reviews__stars { display: inline-flex; gap: 0.125rem; vertical-align: middle; }
+    .product-reviews__star { fill: currentColor; }
+    .product-reviews__star--filled { color: var(--pr-star-filled); }
+    .product-reviews__star--empty { color: var(--pr-star-empty); }
+    .product-reviews__summary { margin: 0.5rem 0 0; font-size: 0.875rem; color: var(--pr-text-muted); }
+    .product-reviews__average { font-weight: 600; color: var(--pr-text-strong); }
+    .product-reviews__list { list-style: none; margin: 0; padding: 0; }
+    .product-reviews__item { padding: 1.125rem 0; border-top: 1px solid var(--pr-border); }
+    .product-reviews__item:first-child { border-top: 0; padding-top: 0; }
+    .product-reviews__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; margin-bottom: 0.5rem; font-size: 0.875rem; }
+    .product-reviews__author { margin: 0; font-weight: 600; color: var(--pr-text-strong); }
+    .product-reviews__verified { font-size: 0.75rem; color: var(--pr-verified); }
+    .product-reviews__date { color: var(--pr-text-muted); }
+    .product-reviews__item-stars { display: inline-flex; gap: 0.0625rem; }
+    .product-reviews__title { margin: 0 0 0.25rem; font-size: 1rem; font-weight: 600; color: var(--pr-text-strong); }
+    .product-reviews__body { margin: 0; line-height: 1.6; color: var(--pr-text); }
+    .product-reviews__photos { display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; margin: 0.75rem 0 0; padding: 0; }
+    .product-reviews__photo-img { width: 4rem; height: 4rem; object-fit: cover; border-radius: 0.375rem; border: 1px solid var(--pr-border); }
+    .product-reviews__pagination { display: flex; justify-content: space-between; margin-top: 1rem; font-size: 0.875rem; }
+    .product-reviews__pagination-link { color: var(--pr-link); text-decoration: none; }
+    .product-reviews__pagination-link:hover { text-decoration: underline; }
+</style>

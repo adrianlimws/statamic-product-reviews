@@ -4,6 +4,9 @@ namespace Brainjuredstudio\ProductReviews\Data;
 
 class ReviewData
 {
+    /**
+     * @param  list<string>  $images
+     */
     public function __construct(
         public readonly string $externalId,
         public readonly string $provider,
@@ -16,6 +19,7 @@ class ReviewData
         public readonly ?string $reviewedAt,
         public readonly bool $published = true,
         public readonly bool $deleted = false,
+        public readonly array $images = [],
         public readonly array $raw = [],
     ) {
     }
@@ -32,6 +36,7 @@ class ReviewData
             'product_id' => $this->productId,
             'verified' => $this->verified,
             'reviewed_at' => $this->reviewedAt,
+            'images' => $this->images,
             'raw' => $this->raw ? json_encode($this->raw) : null,
         ];
     }
