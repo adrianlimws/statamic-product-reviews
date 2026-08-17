@@ -14,6 +14,7 @@ class YotpoClient
         protected ?string $appKey = null,
         protected ?string $secret = null,
         protected ?string $baseUrl = null,
+        protected ?string $cdnBaseUrl = null,
         protected ?int $tokenTtl = null,
         protected ?int $timeout = null,
         protected ?int $connectTimeout = null,
@@ -21,6 +22,7 @@ class YotpoClient
         $this->appKey ??= config('product-reviews.yotpo.app_key');
         $this->secret ??= config('product-reviews.yotpo.secret');
         $this->baseUrl ??= rtrim(config('product-reviews.yotpo.base_url', 'https://api.yotpo.com'), '/');
+        $this->cdnBaseUrl ??= rtrim(config('product-reviews.yotpo.cdn_base_url', 'https://api-cdn.yotpo.com'), '/');
         $this->tokenTtl ??= (int) config('product-reviews.yotpo.token_cache_ttl', 3500);
         $this->timeout ??= (int) config('product-reviews.yotpo.timeout', 60);
         $this->connectTimeout ??= (int) config('product-reviews.yotpo.connect_timeout', 15);
@@ -36,6 +38,26 @@ class YotpoClient
         return (string) $this->appKey;
     }
 
+    /**
+     * Authenticate and hit a lightweight Core reviews request.
+     *
+     * @return array{ok: bool, message: string}
+     */
+    public function testConnection(): array
+    {
+        $this->clearTokenCache();
+        $this->token();
+
+        $payload = $this->fetchReviewsPage(1, 1);
+        $reviews = data_get($payload, 'response.reviews', data_get($payload, 'reviews', []));
+        $count = is_array($reviews) ? count($reviews) : 0;
+
+        return [
+            'ok' => true,
+            'message' => "Yotpo connection OK. Core API responded (sample page returned {$count} review".($count === 1 ? '' : 's').').',
+        ];
+    }
+
     public function fetchReviewsPage(int $page = 1, int $count = 100): array
     {
         try {
@@ -47,13 +69,45 @@ class YotpoClient
                 ]);
         } catch (ConnectionException $e) {
             throw new RuntimeException(
-                'Yotpo reviews request timed out or could not connect. Try again, or increase PRODUCT_REVIEWS_YOTPO_TIMEOUT. '.$this->sanitizeMessage($e->getMessage()),
+                'Yotpo reviews request timed out or could not connect. Try again, increase PRODUCT_REVIEWS_YOTPO_TIMEOUT, or set PRODUCT_REVIEWS_YOTPO_SOURCE=cdn. '.$this->sanitizeMessage($e->getMessage()),
                 previous: $e,
             );
         }
 
         if ($response->failed()) {
             throw new RuntimeException($this->formatFailedResponse('Yotpo reviews request failed', $response));
+        }
+
+        return $response->json() ?? [];
+    }
+
+    /**
+     * Widget/CDN reviews for a product ID (or yotpo_site_reviews).
+     * No utoken required.
+     */
+    public function fetchWidgetReviewsPage(string $productId, int $page = 1, int $perPage = 100): array
+    {
+        $productId = trim($productId);
+
+        if ($productId === '') {
+            throw new RuntimeException('Yotpo widget product ID cannot be empty.');
+        }
+
+        try {
+            $response = $this->http()
+                ->get("{$this->cdnBaseUrl}/v1/widget/{$this->appKey}/products/{$productId}/reviews.json", [
+                    'page' => $page,
+                    'per_page' => min($perPage, 150),
+                ]);
+        } catch (ConnectionException $e) {
+            throw new RuntimeException(
+                'Yotpo CDN reviews request timed out or could not connect. '.$this->sanitizeMessage($e->getMessage()),
+                previous: $e,
+            );
+        }
+
+        if ($response->failed()) {
+            throw new RuntimeException($this->formatFailedResponse('Yotpo CDN reviews request failed', $response));
         }
 
         return $response->json() ?? [];
@@ -117,7 +171,7 @@ class YotpoClient
         $body = trim((string) $response->body());
 
         if ($status === 504 || str_contains(strtolower($body), 'gateway time-out') || str_contains(strtolower($body), 'gateway timeout')) {
-            return "{$prefix}: Yotpo returned a 504 Gateway Timeout. Their API is slow or overloaded — wait a moment and try Sync Now again.";
+            return "{$prefix}: Yotpo returned a 504 Gateway Timeout. Their API is slow or overloaded — wait a moment and try Sync Now again, or set PRODUCT_REVIEWS_YOTPO_SOURCE=cdn.";
         }
 
         if ($status === 502 || $status === 503) {

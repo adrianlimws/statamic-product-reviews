@@ -174,6 +174,78 @@ class SyncReviewsTest extends TestCase
             ->assertSuccessful();
     }
 
+    public function test_sync_falls_back_to_cdn_when_core_times_out(): void
+    {
+        config([
+            'product-reviews.yotpo.source' => 'auto',
+            'product-reviews.yotpo.product_ids' => ['mug-01'],
+            'product-reviews.yotpo.include_site_reviews' => false,
+        ]);
+
+        app(\Brainjuredstudio\ProductReviews\Yotpo\YotpoClient::class)->clearTokenCache();
+
+        Http::swap(new \Illuminate\Http\Client\Factory);
+        Http::fake(function (\Illuminate\Http\Client\Request $request) {
+            if (str_contains($request->url(), '/oauth/token')) {
+                return Http::response([
+                    'access_token' => 'fake-utoken',
+                    'token_type' => 'bearer',
+                ]);
+            }
+
+            if (str_contains($request->url(), '/v1/apps/') && str_contains($request->url(), '/reviews')) {
+                return Http::response('Gateway Timeout', 504);
+            }
+
+            if (str_contains($request->url(), '/v1/widget/') && str_contains($request->url(), '/reviews.json')) {
+                return Http::response(
+                    json_decode(file_get_contents(__DIR__.'/fixtures/yotpo-widget-reviews.json'), true)
+                );
+            }
+
+            return Http::response(['error' => 'unexpected '.$request->url()], 500);
+        });
+
+        $stats = app(ReviewSynchronizer::class)->sync();
+
+        $this->assertTrue($stats['success']);
+        $this->assertSame(1, $stats['created']);
+
+        $entry = Entry::query()
+            ->where('collection', 'product_reviews')
+            ->where('external_id', '2001')
+            ->first();
+
+        $this->assertNotNull($entry);
+        $this->assertSame('mug-01', $entry->get('product_id'));
+        $this->assertSame('CDN User', $entry->get('author_name'));
+    }
+
+    public function test_cdn_only_source_skips_core_api(): void
+    {
+        config([
+            'product-reviews.yotpo.source' => 'cdn',
+            'product-reviews.yotpo.product_ids' => ['mug-01'],
+            'product-reviews.yotpo.include_site_reviews' => false,
+        ]);
+
+        app(\Brainjuredstudio\ProductReviews\Yotpo\YotpoClient::class)->clearTokenCache();
+
+        Http::swap(new \Illuminate\Http\Client\Factory);
+        Http::fake([
+            'https://api-cdn.yotpo.com/*' => Http::response(
+                json_decode(file_get_contents(__DIR__.'/fixtures/yotpo-widget-reviews.json'), true)
+            ),
+            'https://api.yotpo.com/*' => Http::response(['error' => 'core should not be called'], 500),
+        ]);
+
+        $stats = app(ReviewSynchronizer::class)->sync();
+
+        $this->assertTrue($stats['success']);
+        $this->assertSame(1, $stats['created']);
+        Http::assertNotSent(fn (\Illuminate\Http\Client\Request $request) => str_contains($request->url(), 'api.yotpo.com'));
+    }
+
     protected function queueYotpoPages(?array $singleReview = null): void
     {
         app(\Brainjuredstudio\ProductReviews\Yotpo\YotpoClient::class)->clearTokenCache();

@@ -9,30 +9,46 @@
         ? 'text-gray-400'
         : ($success ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400');
     $errorMessage = session('error') ?: ($status['error'] ?? null);
+    $scheduleLabel = str_replace('_', ' ', $schedule ?? 'daily');
+    $sourceLabel = $yotpoSource ?? 'auto';
 @endphp
 
 <div class="flex flex-col gap-4">
     <div class="card p-0 overflow-hidden">
-        <div class="flex w-full items-center justify-between gap-4 border-b border-gray-200 px-4 py-4 dark:border-gray-700">
+        <div class="flex w-full flex-wrap items-center justify-between gap-4 border-b border-gray-200 px-4 py-4 dark:border-gray-700">
             <div class="min-w-0 flex-1">
                 <h2 class="text-base font-medium text-gray-900 dark:text-white">{{ $title }}</h2>
                 <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">{{ $description }}</p>
             </div>
 
-            <form method="POST" action="{{ $syncUrl }}" class="ml-auto shrink-0">
-                @csrf
-                <button
-                    type="submit"
-                    @disabled(! $configured)
-                    class="inline-flex items-center gap-2 rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 dark:focus:ring-white"
-                    @if (! $configured) title="Add Yotpo credentials to .env first" @endif
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-4" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H4.39a.75.75 0 0 0-.75.75v3.842a.75.75 0 0 0 1.5 0v-2.14l.31.31a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm-9.88-3.91a.75.75 0 0 0 1.45-.388A5.5 5.5 0 0 1 16.19 5.77l.312.31h-2.433a.75.75 0 0 0 0 1.5h3.842a.75.75 0 0 0 .75-.75V3.5a.75.75 0 0 0-1.5 0v2.14l-.31-.31A7 7 0 0 0 5.432 7.514Z" clip-rule="evenodd" />
-                    </svg>
-                    Sync Now
-                </button>
-            </form>
+            <div class="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-2">
+                <form method="POST" action="{{ $testUrl }}">
+                    @csrf
+                    <button
+                        type="submit"
+                        @disabled(! $configured)
+                        class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800 dark:focus:ring-white"
+                        @if (! $configured) title="Add Yotpo credentials to .env first" @endif
+                    >
+                        Test Connection
+                    </button>
+                </form>
+
+                <form method="POST" action="{{ $syncUrl }}">
+                    @csrf
+                    <button
+                        type="submit"
+                        @disabled(! $configured)
+                        class="inline-flex items-center gap-2 rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 dark:focus:ring-white"
+                        @if (! $configured) title="Add Yotpo credentials to .env first" @endif
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-4" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H4.39a.75.75 0 0 0-.75.75v3.842a.75.75 0 0 0 1.5 0v-2.14l.31.31a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm-9.88-3.91a.75.75 0 0 0 1.45-.388A5.5 5.5 0 0 1 16.19 5.77l.312.31h-2.433a.75.75 0 0 0 0 1.5h3.842a.75.75 0 0 0 .75-.75V3.5a.75.75 0 0 0-1.5 0v2.14l-.31-.31A7 7 0 0 0 5.432 7.514Z" clip-rule="evenodd" />
+                        </svg>
+                        Sync Now
+                    </button>
+                </form>
+            </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -51,6 +67,14 @@
                     <tr>
                         <td class="px-4 py-3 text-gray-500 dark:text-gray-400">Provider</td>
                         <td class="px-4 py-3 font-medium capitalize text-gray-900 dark:text-white">{{ $provider }}</td>
+                    </tr>
+                    <tr>
+                        <td class="px-4 py-3 text-gray-500 dark:text-gray-400">API source</td>
+                        <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ $sourceLabel }}</td>
+                    </tr>
+                    <tr>
+                        <td class="px-4 py-3 text-gray-500 dark:text-gray-400">Schedule</td>
+                        <td class="px-4 py-3 font-medium capitalize text-gray-900 dark:text-white">{{ $scheduleLabel }}</td>
                     </tr>
                     <tr>
                         <td class="px-4 py-3 text-gray-500 dark:text-gray-400">Collection</td>
@@ -74,28 +98,26 @@
             </table>
         </div>
 
-        @if ($syncedAt && $success)
-            <div class="overflow-x-auto border-t border-gray-200 dark:border-gray-700">
-                <table class="w-full text-left text-sm">
-                    <thead>
-                        <tr class="border-b border-gray-200 bg-gray-50 text-xs font-medium tracking-wide text-gray-500 uppercase dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-400">
-                            <th class="px-4 py-3 font-medium">Created</th>
-                            <th class="px-4 py-3 font-medium">Updated</th>
-                            <th class="px-4 py-3 font-medium">Skipped</th>
-                            <th class="px-4 py-3 font-medium">Unpublished</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="px-4 py-4 text-xl font-semibold text-gray-900 dark:text-white">{{ $status['created'] ?? 0 }}</td>
-                            <td class="px-4 py-4 text-xl font-semibold text-gray-900 dark:text-white">{{ $status['updated'] ?? 0 }}</td>
-                            <td class="px-4 py-4 text-xl font-semibold text-gray-900 dark:text-white">{{ $status['skipped'] ?? 0 }}</td>
-                            <td class="px-4 py-4 text-xl font-semibold text-gray-900 dark:text-white">{{ $status['unpublished'] ?? 0 }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        @endif
+        <div class="overflow-x-auto border-t border-gray-200 dark:border-gray-700">
+            <table class="w-full text-left text-sm">
+                <thead>
+                    <tr class="border-b border-gray-200 bg-gray-50 text-xs font-medium tracking-wide text-gray-500 uppercase dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-400">
+                        <th class="px-4 py-3 font-medium">Created</th>
+                        <th class="px-4 py-3 font-medium">Updated</th>
+                        <th class="px-4 py-3 font-medium">Skipped</th>
+                        <th class="px-4 py-3 font-medium">Unpublished</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="px-4 py-4 text-xl font-semibold text-gray-900 dark:text-white">{{ $status['created'] ?? 0 }}</td>
+                        <td class="px-4 py-4 text-xl font-semibold text-gray-900 dark:text-white">{{ $status['updated'] ?? 0 }}</td>
+                        <td class="px-4 py-4 text-xl font-semibold text-gray-900 dark:text-white">{{ $status['skipped'] ?? 0 }}</td>
+                        <td class="px-4 py-4 text-xl font-semibold text-gray-900 dark:text-white">{{ $status['unpublished'] ?? 0 }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
         @if (session('success'))
             <div class="border-t border-gray-200 px-4 py-4 dark:border-gray-700">

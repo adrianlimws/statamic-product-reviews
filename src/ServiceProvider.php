@@ -74,13 +74,17 @@ class ServiceProvider extends AddonServiceProvider
                         'provider' => $provider->key(),
                         'configured' => $provider->isConfigured(),
                         'status' => SyncStatus::get(),
+                        'schedule' => config('product-reviews.sync.schedule', 'daily'),
+                        'yotpoSource' => config('product-reviews.yotpo.source', 'auto'),
                         'syncUrl' => cp_route('utilities.product-reviews.sync'),
+                        'testUrl' => cp_route('utilities.product-reviews.test'),
                         'collection' => $collection,
                         'collectionUrl' => cp_route('collections.show', $collection),
                     ];
                 })
                 ->routes(function ($router) {
                     $router->post('sync', [UtilityController::class, 'sync'])->name('sync');
+                    $router->post('test', [UtilityController::class, 'test'])->name('test');
                 });
         });
     }
@@ -92,8 +96,11 @@ class ServiceProvider extends AddonServiceProvider
         $event = $schedule->command('product-reviews:sync');
 
         match ($frequency) {
-            'hourly' => $event->hourly(),
+            'every_five_minutes' => $event->everyFiveMinutes(),
             'every_fifteen_minutes' => $event->everyFifteenMinutes(),
+            'every_thirty_minutes' => $event->everyThirtyMinutes(),
+            'hourly' => $event->hourly(),
+            'twice_daily' => $event->twiceDaily(),
             default => $event->daily(),
         };
     }

@@ -7,11 +7,12 @@
 ## Features
 
 - Pull Yotpo reviews via REST API into a `product_reviews` collection
-- Scheduled and on-demand sync
+- Automatic CDN fallback when the Core API times out
+- Scheduled and on-demand sync (down to every five minutes)
 - Manual override so CP edits are not overwritten
 - Antlers tags for listing, averages, and counts
 - Schema.org Product / AggregateRating / Review markup
-- CP utility for connection status and “Sync now”
+- CP utility for connection test, status, and “Sync now”
 
 ## Requirements
 
@@ -43,12 +44,39 @@ Optional:
 ```env
 PRODUCT_REVIEWS_PROVIDER=yotpo
 PRODUCT_REVIEWS_PAGE_SIZE=100
-PRODUCT_REVIEWS_SCHEDULE=daily
+PRODUCT_REVIEWS_SCHEDULE=hourly
+PRODUCT_REVIEWS_YOTPO_SOURCE=auto
+PRODUCT_REVIEWS_YOTPO_PRODUCT_IDS=sku-123,sku-456
+PRODUCT_REVIEWS_YOTPO_INCLUDE_SITE_REVIEWS=true
 PRODUCT_REVIEWS_YOTPO_TIMEOUT=60
 PRODUCT_REVIEWS_YOTPO_CONNECT_TIMEOUT=15
 ```
 
+| Variable | Values | Default |
+|---|---|---|
+| `PRODUCT_REVIEWS_SCHEDULE` | `daily`, `twice_daily`, `hourly`, `every_thirty_minutes`, `every_fifteen_minutes`, `every_five_minutes` | `daily` |
+| `PRODUCT_REVIEWS_YOTPO_SOURCE` | `auto` (Core then CDN), `core`, `cdn` | `auto` |
+| `PRODUCT_REVIEWS_YOTPO_PRODUCT_IDS` | Comma-separated storefront product IDs / SKUs for CDN sync | _(empty)_ |
+
 Yotpo credentials: **Settings → Store Settings → API Credentials**.
+
+### Product ID matching
+
+`product_id` on synced entries must match the ID you use in Antlers — typically your **storefront SKU / external product ID** (Shopify product/variant ID or SKU), **not** Yotpo’s internal numeric ID.
+
+```antlers
+{{ product_reviews product_id="{{ sku }}" }}
+```
+
+If Core API syncs fine, SKUs usually land correctly. For CDN-only or CDN fallback syncs, set:
+
+```env
+PRODUCT_REVIEWS_YOTPO_PRODUCT_IDS=your-sku-1,your-sku-2
+```
+
+Those values should be the same IDs Yotpo knows as the product’s `domain_key` / external ID. After the first sync, existing entry `product_id` values are reused automatically on later CDN runs.
+
+If reviews sync but the frontend shows zero, compare **Collections → Product Reviews → product_id** with the `product_id=` value in your template.
 
 ## Sync
 
@@ -58,9 +86,9 @@ php please product-reviews:sync
 php artisan product-reviews:sync
 ```
 
-Or **Utilities → Product Reviews → Sync Now** in the Control Panel.
+Or **Utilities → Product Reviews → Sync Now** in the Control Panel. Use **Test Connection** to verify credentials without a full sync.
 
-Default schedule is daily (`PRODUCT_REVIEWS_SCHEDULE=hourly` supported). Ensure the host runs Laravel’s scheduler:
+Default schedule is daily. Ensure the host runs Laravel’s scheduler:
 
 ```cron
 * * * * * cd /path/to/site && php artisan schedule:run >> /dev/null 2>&1

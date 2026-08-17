@@ -1,0 +1,31 @@
+{
+  "response": {
+    "pagination": {
+      "page": 1,
+      "per_page": 100,
+      "total": 1
+    },
+    "products": [
+      {
+        "id": 13,
+        "domain_key": "mug-01",
+        "name": "Yotpo Mug"
+      }
+    ],
+    "reviews": [
+      {
+        "id": 2001,
+        "title": "CDN mug review",
+        "content": "Synced via widget API.",
+        "score": 5,
+        "created_at": "2024-03-01T12:00:00.000Z",
+        "verified_buyer": true,
+        "product_id": 13,
+        "user": {
+          "display_name": "CDN User"
+        },
+        "deleted": false
+      }
+    ]
+  }
+}

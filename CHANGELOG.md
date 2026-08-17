@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-08-17
+
+### Added
+
+- Yotpo CDN widget fallback when Core API times out (`PRODUCT_REVIEWS_YOTPO_SOURCE=auto|core|cdn`)
+- Optional CDN product ID list (`PRODUCT_REVIEWS_YOTPO_PRODUCT_IDS`) and site-reviews sync
+- More sync schedules: `twice_daily`, `every_thirty_minutes`, `every_five_minutes`
+- CP **Test Connection** button (auth + lightweight API check)
+- Docs for matching Antlers `product_id` to Yotpo / Shopify SKUs
+
+### Improved
+
+- Last sync counts always visible in the CP utility
+- Utility shows configured schedule and API source
+
 ## [1.0.1] - 2026-08-16
 
 ### Improved
